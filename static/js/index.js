@@ -144,7 +144,7 @@ const iclFilmTasks = [
         speed: "3×",
     },
     {
-        label: "How to place the block into the fixture?",
+        label: "How to pull the drawer open?",
         category: 1,
         human: `${iclFilmPath}openloong-block-human.mp4`,
         robot: `${iclFilmPath}openloong-block-robot.mp4`,
