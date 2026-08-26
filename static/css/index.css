@@ -317,7 +317,8 @@ button:focus-visible,
   padding-bottom: 2.25rem;
 }
 
-.promo-placeholder {
+.promo-video {
+  display: block;
   width: 100%;
   max-width: 820px;
   aspect-ratio: 16 / 9;
