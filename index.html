@@ -11,9 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./static/css/bulma.min.css">
     <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
-    <link rel="stylesheet" href="./static/css/index.css?v=20260827-1">
+    <link rel="stylesheet" href="./static/css/index.css?v=20260827-2">
     <link rel="icon" type="image/webp" href="./static/images/robot-logo-robbyant.webp">
-    <script defer src="./static/js/index.js?v=20260824-4"></script>
+    <script defer src="./static/js/index.js?v=20260827-1"></script>
 </head>
 
 <body>
@@ -93,9 +93,15 @@
 
         <section class="section promo-section" aria-label="Promotional video">
             <div class="container is-max-widescreen">
-                <video class="promo-video" controls playsinline preload="metadata" aria-label="Zero-WAM promotional video">
-                    <source src="./static/videos/promo/zero-wam-promo-no-bgm-web.mp4" type="video/mp4">
-                </video>
+                <div class="video-shell promo-video-shell">
+                    <video class="promo-video" src="./static/videos/promo/zero-wam-promo-no-bgm-web.mp4" muted playsinline preload="auto" data-promo-video aria-label="Zero-WAM promotional video"></video>
+                    <div class="video-controls">
+                        <button class="video-play-toggle" type="button" aria-label="Play video"></button>
+                        <span class="video-time video-time-current">0:00</span>
+                        <div class="video-progress" role="slider" tabindex="0" aria-label="Zero-WAM promotional video progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="video-progress-fill"></div></div>
+                        <span class="video-time video-time-duration">0:00</span>
+                    </div>
+                </div>
             </div>
         </section>
 

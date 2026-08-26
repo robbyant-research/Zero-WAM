@@ -317,16 +317,19 @@ button:focus-visible,
   padding-bottom: 2.25rem;
 }
 
+.promo-video-shell {
+  width: 100%;
+  max-width: 1040px;
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
+}
+
 .promo-video {
   display: block;
   width: 100%;
-  max-width: 820px;
-  aspect-ratio: 16 / 9;
-  margin: 0 auto;
-  overflow: hidden;
+  height: 100%;
   background: #1d1d1d;
-  border-radius: var(--radius-media);
-  box-shadow: 0 14px 36px rgba(20, 28, 38, 0.1);
+  object-fit: contain;
 }
 
 .motivation-section {

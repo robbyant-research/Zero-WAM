@@ -722,6 +722,44 @@ const bindVideoProgress = (video) => {
     updatePlaybackState();
 };
 
+const setupPromoVideo = () => {
+    const video = document.querySelector("[data-promo-video]");
+    if (!video) {
+        return;
+    }
+
+    video.muted = true;
+    bindVideoProgress(video);
+
+    if (prefersReducedMotion) {
+        return;
+    }
+
+    let isVisible = false;
+
+    const setPlayback = (shouldPlay) => {
+        if (!shouldPlay) {
+            video.pause();
+            return;
+        }
+
+        const playback = video.play();
+        if (playback) {
+            playback.catch(() => {});
+        }
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        isVisible = entries.some((entry) => entry.isIntersecting);
+        setPlayback(isVisible && !document.hidden);
+    }, { threshold: 0.35 });
+
+    observer.observe(video.closest(".promo-video-shell") || video);
+    document.addEventListener("visibilitychange", () => {
+        setPlayback(isVisible && !document.hidden);
+    });
+};
+
 const setupRobotwinVideoControls = () => {
     document.querySelectorAll(".robotwin-task video").forEach((video) => {
         if (video.closest(".video-shell")) {
@@ -1142,6 +1180,7 @@ const setupChartAnimation = () => {
 
 setupTableOfContents();
 setupIclFilm();
+setupPromoVideo();
 document.querySelectorAll(".demo-block").forEach(renderDemo);
 setupRobotwinVideoControls();
 setupPipelineAnimation();
