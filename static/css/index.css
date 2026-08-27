@@ -2235,15 +2235,8 @@ button:focus-visible,
 }
 
 .citation-section {
-  padding-top: 2rem;
+  padding-top: 1.25rem;
   padding-bottom: 2.5rem;
-}
-
-.citation-copy {
-  margin: 0.4rem 0 0.9rem;
-  color: var(--muted-ink);
-  font-size: 0.98rem;
-  line-height: 1.5;
 }
 
 .citation-bibtex {
