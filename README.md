@@ -23,7 +23,7 @@
 
 <p align="center">
   <a href="https://robbyant-research.github.io/Zero-WAM/"><img src="https://img.shields.io/badge/Project-Page-blue" alt="Project page"></a>
-  <img src="https://img.shields.io/badge/Paper-Released-brightgreen" alt="Paper released">
+  <a href="https://arxiv.org/abs/2608.26103"><img src="https://img.shields.io/badge/Paper-arXiv%3A2608.26103-brightgreen" alt="arXiv paper"></a>
   <img src="https://img.shields.io/badge/Code-before%20Sep%2015%2C%202026-lightgrey" alt="Code release planned">
   <img src="https://img.shields.io/badge/Model-before%20Sep%2015%2C%202026-lightgrey" alt="Model release planned">
   <img src="https://img.shields.io/badge/Data-before%20Sep%2015%2C%202026-lightgrey" alt="Data release planned">
@@ -42,7 +42,7 @@ Zero-WAM targets zero-shot cross-task robotic manipulation, where a policy must 
 
 ## Release Plan
 
-- [x] Paper release
+- [x] Paper release: [arXiv:2608.26103](https://arxiv.org/abs/2608.26103)
 - [ ] Code: expected before Sep 15, 2026
 - [ ] Model: expected before Sep 15, 2026
 - [ ] Data: expected before Sep 15, 2026
@@ -87,4 +87,16 @@ Zero-WAM achieves 46.95% average zero-shot success on seven unseen RoboTwin 2.0 
 
 ## Citation
 
-The official BibTeX entry will be added here.
+If you find Zero-WAM useful, please cite:
+
+```bibtex
+@misc{zhou2026zerowam,
+  title = {Zero-WAM: In-Context World-Action Modeling from Human Videos for Open-Ended Task Generalization},
+  author = {Zhou, Jiaming and Zhang, Qihang and Xu, Gangwei and Fan, Cunxin and Zhao, Yujie and Wang, Ruilin and Luo, Yiming and Yang, Shuai and Zhu, Xing and Shen, Yujun and Liang, Junwei and Xu, Yinghao},
+  year = {2026},
+  eprint = {2608.26103},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.RO},
+  url = {https://arxiv.org/abs/2608.26103}
+}
+```
