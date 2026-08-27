@@ -2234,6 +2234,37 @@ button:focus-visible,
   font-weight: 700;
 }
 
+.citation-section {
+  padding-top: 2rem;
+  padding-bottom: 2.5rem;
+}
+
+.citation-copy {
+  margin: 0.4rem 0 0.9rem;
+  color: var(--muted-ink);
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.citation-bibtex {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.3);
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid rgba(24, 24, 24, 0.14);
+  color: var(--ink);
+  font-family: "Roboto Mono", monospace;
+  font-size: clamp(0.72rem, 1.05vw, 0.9rem);
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.citation-bibtex code {
+  color: inherit;
+  font: inherit;
+}
+
 .site-footer {
   margin-top: 1.5rem;
   padding: 1.4rem 1.5rem 2rem;
