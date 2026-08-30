@@ -332,6 +332,46 @@ button:focus-visible,
   object-fit: contain;
 }
 
+.promo-audio-toggle {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 3;
+  display: inline-grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  padding: 0;
+  background: rgba(250, 248, 243, 0.9);
+  border: 1px solid rgba(24, 24, 24, 0.16);
+  border-radius: 6px;
+  color: var(--ink);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.promo-audio-toggle:hover,
+.promo-audio-toggle:focus-visible {
+  background: rgba(198, 226, 255, 0.94);
+  border-color: rgba(42, 132, 220, 0.45);
+  transform: translateY(-1px);
+}
+
+.promo-audio-toggle:focus-visible {
+  outline: 2px solid rgba(42, 132, 220, 0.82);
+  outline-offset: 2px;
+}
+
+.promo-audio-toggle i {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.promo-audio-toggle.is-muted {
+  color: rgba(24, 24, 24, 0.58);
+}
+
 .motivation-section {
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;

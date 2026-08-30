@@ -728,14 +728,55 @@ const setupPromoVideo = () => {
         return;
     }
 
-    video.muted = true;
+    const audioToggle = document.querySelector("[data-promo-audio-toggle]");
+    const audioToggleIcon = audioToggle ? audioToggle.querySelector("i") : null;
+    let isVisible = false;
+
+    const updateAudioState = () => {
+        if (!audioToggle) {
+            return;
+        }
+
+        const isMuted = video.muted || video.volume === 0;
+        audioToggle.classList.toggle("is-muted", isMuted);
+        audioToggle.classList.toggle("is-unmuted", !isMuted);
+        audioToggle.setAttribute("aria-label", isMuted ? "Unmute promotional video" : "Mute promotional video");
+
+        if (audioToggleIcon) {
+            audioToggleIcon.className = `fas ${isMuted ? "fa-volume-mute" : "fa-volume-up"}`;
+        }
+    };
+
+    video.defaultMuted = false;
+    video.muted = false;
+    video.volume = video.volume > 0 ? video.volume : 0.85;
     bindVideoProgress(video);
+    updateAudioState();
+
+    if (audioToggle) {
+        audioToggle.addEventListener("click", () => {
+            const shouldMute = !(video.muted || video.volume === 0);
+            video.muted = shouldMute;
+
+            if (!shouldMute && video.volume === 0) {
+                video.volume = 0.85;
+            }
+
+            updateAudioState();
+
+            if (!shouldMute && isVisible && !document.hidden) {
+                const playback = video.play();
+                if (playback) {
+                    playback.catch(() => {});
+                }
+            }
+        });
+        video.addEventListener("volumechange", updateAudioState);
+    }
 
     if (prefersReducedMotion) {
         return;
     }
-
-    let isVisible = false;
 
     const setPlayback = (shouldPlay) => {
         if (!shouldPlay) {
