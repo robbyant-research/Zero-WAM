@@ -731,8 +731,10 @@ const setupPromoVideo = () => {
     const audioToggle = document.querySelector("[data-promo-audio-toggle]");
     const audioToggleIcon = audioToggle ? audioToggle.querySelector("i") : null;
     const volumeSlider = document.querySelector("[data-promo-volume]");
+    const volumeFill = volumeSlider ? volumeSlider.querySelector(".promo-volume-fill") : null;
     const defaultVolume = 0.85;
     let lastVolume = defaultVolume;
+    let isAdjustingVolume = false;
     let isVisible = false;
 
     const updateAudioState = () => {
@@ -751,7 +753,14 @@ const setupPromoVideo = () => {
         }
 
         if (volumeSlider) {
-            volumeSlider.value = isMuted ? "0" : String(video.volume);
+            const displayVolume = isMuted ? 0 : video.volume;
+            const volumePercent = Math.round(displayVolume * 100);
+            volumeSlider.setAttribute("aria-valuenow", String(volumePercent));
+            volumeSlider.setAttribute("aria-valuetext", `${volumePercent}%`);
+            volumeSlider.style.setProperty("--volume-level", String(displayVolume));
+            if (volumeFill) {
+                volumeFill.style.height = `${volumePercent}%`;
+            }
         }
     };
 
@@ -786,9 +795,8 @@ const setupPromoVideo = () => {
     }
 
     if (volumeSlider) {
-        volumeSlider.addEventListener("input", () => {
-            const nextVolume = Number(volumeSlider.value);
-            video.volume = Number.isFinite(nextVolume) ? Math.min(Math.max(nextVolume, 0), 1) : defaultVolume;
+        const setVolume = (nextVolume) => {
+            video.volume = Math.min(Math.max(nextVolume, 0), 1);
             video.muted = video.volume === 0;
 
             if (video.volume > 0) {
@@ -803,6 +811,58 @@ const setupPromoVideo = () => {
                     playback.catch(() => {});
                 }
             }
+        };
+
+        const volumeFromPointer = (event) => {
+            const rect = volumeSlider.getBoundingClientRect();
+            const y = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
+            return rect.height ? 1 - (y / rect.height) : defaultVolume;
+        };
+
+        volumeSlider.addEventListener("pointerdown", (event) => {
+            event.preventDefault();
+            isAdjustingVolume = true;
+            volumeSlider.setPointerCapture(event.pointerId);
+            setVolume(volumeFromPointer(event));
+        });
+
+        volumeSlider.addEventListener("pointermove", (event) => {
+            if (isAdjustingVolume) {
+                setVolume(volumeFromPointer(event));
+            }
+        });
+
+        const finishVolumeAdjustment = (event) => {
+            isAdjustingVolume = false;
+            if (event && volumeSlider.hasPointerCapture(event.pointerId)) {
+                volumeSlider.releasePointerCapture(event.pointerId);
+            }
+        };
+
+        volumeSlider.addEventListener("pointerup", finishVolumeAdjustment);
+        volumeSlider.addEventListener("pointercancel", finishVolumeAdjustment);
+
+        volumeSlider.addEventListener("keydown", (event) => {
+            const keys = ["ArrowUp", "ArrowRight", "ArrowDown", "ArrowLeft", "Home", "End"];
+            if (!keys.includes(event.key)) {
+                return;
+            }
+
+            event.preventDefault();
+
+            if (event.key === "Home") {
+                setVolume(0);
+                return;
+            }
+
+            if (event.key === "End") {
+                setVolume(1);
+                return;
+            }
+
+            const direction = event.key === "ArrowUp" || event.key === "ArrowRight" ? 1 : -1;
+            const currentVolume = video.muted ? 0 : video.volume;
+            setVolume(currentVolume + direction * 0.05);
         });
     }
 

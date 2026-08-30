@@ -11,9 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./static/css/bulma.min.css">
     <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
-    <link rel="stylesheet" href="./static/css/index.css?v=20260827-4">
+    <link rel="stylesheet" href="./static/css/index.css?v=20260830-audio3">
     <link rel="icon" type="image/webp" href="./static/images/robot-logo-robbyant.webp">
-    <script defer src="./static/js/index.js?v=20260827-1"></script>
+    <script defer src="./static/js/index.js?v=20260830-audio3"></script>
 </head>
 
 <body>
@@ -100,10 +100,11 @@
                             <button class="promo-audio-toggle is-unmuted" type="button" aria-label="Mute promotional video" data-promo-audio-toggle>
                                 <i class="fas fa-volume-up" aria-hidden="true"></i>
                             </button>
-                            <label class="promo-volume-popover" aria-label="Promotional video volume">
-                                <span class="sr-only">Volume</span>
-                                <input class="promo-volume-slider" type="range" min="0" max="1" step="0.01" value="0.85" orient="vertical" data-promo-volume>
-                            </label>
+                            <div class="promo-volume-popover">
+                                <div class="promo-volume-slider" role="slider" tabindex="0" aria-label="Promotional video volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="85" data-promo-volume>
+                                    <div class="promo-volume-track"><div class="promo-volume-fill"></div></div>
+                                </div>
+                            </div>
                         </div>
                         <button class="video-play-toggle" type="button" aria-label="Play video"></button>
                         <span class="video-time video-time-current">0:00</span>
