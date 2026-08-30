@@ -332,44 +332,63 @@ button:focus-visible,
   object-fit: contain;
 }
 
+.promo-video-controls {
+  grid-template-columns: 1.12rem 1.12rem 4.4rem auto minmax(0, 1fr) auto;
+}
+
 .promo-audio-toggle {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  z-index: 3;
-  display: inline-grid;
-  width: 2.35rem;
-  height: 2.35rem;
+  position: relative;
+  display: grid;
+  width: 1.12rem;
+  height: 1.12rem;
   place-items: center;
   padding: 0;
-  background: rgba(250, 248, 243, 0.9);
-  border: 1px solid rgba(24, 24, 24, 0.16);
-  border-radius: 6px;
+  background: rgba(225, 242, 255, 0.84);
+  border: 0;
+  border-radius: 2px;
   color: var(--ink);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: none;
   cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  transition: background 160ms ease, color 160ms ease;
 }
 
 .promo-audio-toggle:hover,
 .promo-audio-toggle:focus-visible {
-  background: rgba(198, 226, 255, 0.94);
-  border-color: rgba(42, 132, 220, 0.45);
-  transform: translateY(-1px);
+  background: rgba(240, 248, 255, 0.96);
 }
 
 .promo-audio-toggle:focus-visible {
   outline: 2px solid rgba(42, 132, 220, 0.82);
-  outline-offset: 2px;
+  outline-offset: 1px;
 }
 
 .promo-audio-toggle i {
-  font-size: 1rem;
+  font-size: 0.68rem;
   line-height: 1;
 }
 
 .promo-audio-toggle.is-muted {
   color: rgba(24, 24, 24, 0.58);
+}
+
+.promo-volume-control {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.promo-volume-slider {
+  width: 100%;
+  min-width: 3.2rem;
+  height: 0.9rem;
+  margin: 0;
+  accent-color: rgba(42, 132, 220, 0.9);
+  cursor: pointer;
+}
+
+.promo-volume-slider:focus-visible {
+  outline: 2px solid rgba(42, 132, 220, 0.82);
+  outline-offset: 2px;
 }
 
 .motivation-section {

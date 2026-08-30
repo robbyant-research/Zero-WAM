@@ -730,6 +730,9 @@ const setupPromoVideo = () => {
 
     const audioToggle = document.querySelector("[data-promo-audio-toggle]");
     const audioToggleIcon = audioToggle ? audioToggle.querySelector("i") : null;
+    const volumeSlider = document.querySelector("[data-promo-volume]");
+    const defaultVolume = 0.85;
+    let lastVolume = defaultVolume;
     let isVisible = false;
 
     const updateAudioState = () => {
@@ -743,28 +746,36 @@ const setupPromoVideo = () => {
         audioToggle.setAttribute("aria-label", isMuted ? "Unmute promotional video" : "Mute promotional video");
 
         if (audioToggleIcon) {
-            audioToggleIcon.className = `fas ${isMuted ? "fa-volume-mute" : "fa-volume-up"}`;
+            const iconName = isMuted ? "fa-volume-mute" : video.volume < 0.5 ? "fa-volume-down" : "fa-volume-up";
+            audioToggleIcon.className = `fas ${iconName}`;
+        }
+
+        if (volumeSlider) {
+            volumeSlider.value = isMuted ? "0" : String(video.volume);
         }
     };
 
-    video.defaultMuted = false;
-    video.muted = false;
-    video.volume = video.volume > 0 ? video.volume : 0.85;
+    video.defaultMuted = true;
+    video.muted = true;
+    video.volume = defaultVolume;
     bindVideoProgress(video);
     updateAudioState();
 
     if (audioToggle) {
         audioToggle.addEventListener("click", () => {
-            const shouldMute = !(video.muted || video.volume === 0);
-            video.muted = shouldMute;
+            const isMuted = video.muted || video.volume === 0;
 
-            if (!shouldMute && video.volume === 0) {
-                video.volume = 0.85;
+            if (isMuted) {
+                video.muted = false;
+                video.volume = lastVolume || defaultVolume;
+            } else {
+                lastVolume = video.volume || defaultVolume;
+                video.muted = true;
             }
 
             updateAudioState();
 
-            if (!shouldMute && isVisible && !document.hidden) {
+            if (isVisible && !document.hidden) {
                 const playback = video.play();
                 if (playback) {
                     playback.catch(() => {});
@@ -772,6 +783,27 @@ const setupPromoVideo = () => {
             }
         });
         video.addEventListener("volumechange", updateAudioState);
+    }
+
+    if (volumeSlider) {
+        volumeSlider.addEventListener("input", () => {
+            const nextVolume = Number(volumeSlider.value);
+            video.volume = Number.isFinite(nextVolume) ? Math.min(Math.max(nextVolume, 0), 1) : defaultVolume;
+            video.muted = video.volume === 0;
+
+            if (video.volume > 0) {
+                lastVolume = video.volume;
+            }
+
+            updateAudioState();
+
+            if (!video.muted && isVisible && !document.hidden) {
+                const playback = video.play();
+                if (playback) {
+                    playback.catch(() => {});
+                }
+            }
+        });
     }
 
     if (prefersReducedMotion) {
