@@ -755,8 +755,8 @@ const setupPromoVideo = () => {
         }
     };
 
-    video.defaultMuted = true;
-    video.muted = true;
+    video.defaultMuted = false;
+    video.muted = false;
     video.volume = defaultVolume;
     bindVideoProgress(video);
     updateAudioState();
@@ -810,16 +810,34 @@ const setupPromoVideo = () => {
         return;
     }
 
+    const playWithFallback = () => {
+        const playback = video.play();
+        if (!playback) {
+            return;
+        }
+
+        playback.catch(() => {
+            if (video.muted) {
+                return;
+            }
+
+            video.muted = true;
+            updateAudioState();
+
+            const mutedPlayback = video.play();
+            if (mutedPlayback) {
+                mutedPlayback.catch(() => {});
+            }
+        });
+    };
+
     const setPlayback = (shouldPlay) => {
         if (!shouldPlay) {
             video.pause();
             return;
         }
 
-        const playback = video.play();
-        if (playback) {
-            playback.catch(() => {});
-        }
+        playWithFallback();
     };
 
     const observer = new IntersectionObserver((entries) => {

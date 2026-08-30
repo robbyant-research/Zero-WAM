@@ -333,14 +333,24 @@ button:focus-visible,
 }
 
 .promo-video-controls {
-  grid-template-columns: 1.12rem 1.12rem 4.4rem auto minmax(0, 1fr) auto;
+  grid-template-columns: 1.12rem 1.12rem auto minmax(0, 1fr) auto;
+  overflow: visible;
 }
 
-.promo-audio-toggle {
+.promo-volume-control {
   position: relative;
   display: grid;
   width: 1.12rem;
   height: 1.12rem;
+  min-width: 0;
+}
+
+.promo-audio-toggle {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 100%;
+  height: 100%;
   place-items: center;
   padding: 0;
   background: rgba(225, 242, 255, 0.84);
@@ -371,19 +381,40 @@ button:focus-visible,
   color: rgba(24, 24, 24, 0.58);
 }
 
-.promo-volume-control {
-  display: flex;
-  align-items: center;
-  min-width: 0;
+.promo-volume-popover {
+  position: absolute;
+  bottom: calc(100% + 0.42rem);
+  left: 50%;
+  z-index: 4;
+  display: grid;
+  width: 1.95rem;
+  height: 6.2rem;
+  place-items: center;
+  padding: 0.5rem 0;
+  background: rgba(250, 248, 243, 0.94);
+  border: 1px solid rgba(24, 24, 24, 0.14);
+  border-radius: 6px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 0.35rem);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.promo-volume-control:hover .promo-volume-popover,
+.promo-volume-control:focus-within .promo-volume-popover {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
 }
 
 .promo-volume-slider {
-  width: 100%;
-  min-width: 3.2rem;
+  width: 5rem;
   height: 0.9rem;
   margin: 0;
   accent-color: rgba(42, 132, 220, 0.9);
   cursor: pointer;
+  transform: rotate(-90deg);
 }
 
 .promo-volume-slider:focus-visible {

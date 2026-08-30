@@ -94,16 +94,18 @@
         <section class="section promo-section" aria-label="Promotional video">
             <div class="container is-max-widescreen">
                 <div class="video-shell promo-video-shell">
-                    <video class="promo-video" src="./static/videos/promo/zero-wam-promo-condensed-full-bgm-v6-720p.mp4" autoplay muted playsinline preload="auto" data-promo-video aria-label="Zero-WAM promotional video"></video>
+                    <video class="promo-video" src="./static/videos/promo/zero-wam-promo-condensed-full-bgm-v6-720p.mp4" autoplay playsinline preload="auto" data-promo-video aria-label="Zero-WAM promotional video"></video>
                     <div class="video-controls promo-video-controls">
-                        <button class="promo-audio-toggle is-muted" type="button" aria-label="Unmute promotional video" data-promo-audio-toggle>
-                            <i class="fas fa-volume-mute" aria-hidden="true"></i>
-                        </button>
+                        <div class="promo-volume-control">
+                            <button class="promo-audio-toggle is-unmuted" type="button" aria-label="Mute promotional video" data-promo-audio-toggle>
+                                <i class="fas fa-volume-up" aria-hidden="true"></i>
+                            </button>
+                            <label class="promo-volume-popover" aria-label="Promotional video volume">
+                                <span class="sr-only">Volume</span>
+                                <input class="promo-volume-slider" type="range" min="0" max="1" step="0.01" value="0.85" orient="vertical" data-promo-volume>
+                            </label>
+                        </div>
                         <button class="video-play-toggle" type="button" aria-label="Play video"></button>
-                        <label class="promo-volume-control" aria-label="Promotional video volume">
-                            <span class="sr-only">Volume</span>
-                            <input class="promo-volume-slider" type="range" min="0" max="1" step="0.01" value="0" data-promo-volume>
-                        </label>
                         <span class="video-time video-time-current">0:00</span>
                         <div class="video-progress" role="slider" tabindex="0" aria-label="Zero-WAM promotional video progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="video-progress-fill"></div></div>
                         <span class="video-time video-time-duration">0:00</span>
