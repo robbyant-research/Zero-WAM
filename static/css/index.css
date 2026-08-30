@@ -332,9 +332,30 @@ button:focus-visible,
   object-fit: contain;
 }
 
-.promo-video-controls {
-  grid-template-columns: 1.12rem 1.12rem auto minmax(0, 1fr) auto;
+.video-controls.promo-video-controls {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
   overflow: visible;
+}
+
+.video-controls.promo-video-controls .promo-volume-control,
+.video-controls.promo-video-controls .video-play-toggle,
+.video-controls.promo-video-controls .video-time {
+  flex: 0 0 auto;
+}
+
+.video-controls.promo-video-controls .video-progress {
+  flex: 1 1 auto;
+  min-width: 5rem;
+}
+
+.video-controls.promo-video-controls .video-progress::before {
+  background: rgba(22, 64, 112, 0.34);
+}
+
+.video-controls.promo-video-controls .video-progress-fill {
+  background: rgba(42, 132, 220, 0.96);
 }
 
 .promo-volume-control {
