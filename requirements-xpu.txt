@@ -1,0 +1,26 @@
+--extra-index-url https://download.pytorch.org/whl/xpu
+
+torch==2.14.1+xpu
+torchvision==0.29.1+xpu
+diffusers==0.36.0
+transformers==4.55.2
+accelerate
+einops
+easydict
+numpy==1.26.4
+tqdm
+imageio[ffmpeg]
+websockets
+msgpack
+opencv-python
+matplotlib
+ftfy
+safetensors
+huggingface_hub
+Pillow
+PyYAML
+scipy
+wandb
+
+# LeRobot 0.3.3 requires torch<2.8 and is therefore excluded from this
+# latest-XPU inference/server environment.

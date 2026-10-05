@@ -15,6 +15,7 @@ from einops import rearrange
 from tqdm import tqdm
 
 from .configs import VA_CONFIGS
+from .device import empty_cache, get_device
 from .distributed.fsdp import shard_model
 from .distributed.util import _configure_model, init_distributed
 from .modules.utils import (
@@ -48,8 +49,13 @@ class VA_Server:
         self.job_config = job_config
         self.save_root = job_config.save_root
         self.dtype = job_config.param_dtype
-        self.device = torch.device(f"cuda:{job_config.local_rank}")
-        self.enable_offload = getattr(job_config, 'enable_offload', True)  # offload vae & text_encoder to save vram
+        self.device = get_device(job_config.local_rank, job_config.device)
+        configured_offload = getattr(job_config, 'enable_offload', None)
+        self.enable_offload = (
+            self.device.type != 'cuda'
+            if configured_offload is None
+            else configured_offload
+        )
 
         self.scheduler = FlowMatchScheduler(shift=self.job_config.snr_shift,
                                             sigma_min=0.0,
@@ -399,9 +405,10 @@ class VA_Server:
             image = image[0]
 
         self.streaming_vae.clear_cache()
+        vae_device = next(self.streaming_vae.vae.parameters()).device
         videos = []
         for key in self.job_config.obs_cam_keys:
-            current = torch.from_numpy(image[key].copy()).float().to(self.device)
+            current = torch.from_numpy(image[key].copy()).float().to(vae_device)
             current = current / 255.0 * 2.0 - 1.0
             current = current.permute(2, 0, 1).unsqueeze(0)
             current = F.interpolate(
@@ -969,7 +976,7 @@ class VA_Server:
         self.exp_name = f"{prompt}_{time.strftime('%Y%m%d_%H%M%S')}" if prompt else "default"
         self.exp_save_root = os.path.join(self.save_root, 'real', self.exp_name)
         os.makedirs(self.exp_save_root, exist_ok=True)
-        torch.cuda.empty_cache()
+        empty_cache(self.device)
 
     def _infer(self, obs, frame_st_id=0):
         frame_chunk_size = self.job_config.frame_chunk_size
@@ -1097,7 +1104,7 @@ class VA_Server:
         save_async(actions, os.path.join(self.exp_save_root, f'actions_{frame_st_id}.pt'))
 
         actions = self.postprocess_action(actions)
-        torch.cuda.empty_cache()
+        empty_cache(self.device)
         return actions, latents
 
     def _compute_kv_cache(self, obs):
@@ -1131,7 +1138,7 @@ class VA_Server:
                              update_cache=2,
                              cache_name=self.cache_name,
                              action_mode=True)
-        torch.cuda.empty_cache()
+        empty_cache(self.device)
         self.frame_st_id += latent_model_input.shape[2]
 
     @torch.no_grad()
@@ -1216,7 +1223,7 @@ class VA_Server:
         del self.transformer
         del self.streaming_vae_half
         del self.text_encoder
-        torch.cuda.empty_cache()
+        empty_cache(self.device)
         
         # Move VAE to GPU for decoding
         if self.enable_offload:
@@ -1234,7 +1241,7 @@ def run(args):
     rank = int(os.getenv("RANK", 0))
     local_rank = int(os.environ.get('LOCAL_RANK', 0))
     world_size = int(os.environ.get("WORLD_SIZE", 1))
-    init_distributed(world_size, local_rank, rank)
+    init_distributed(world_size, local_rank, rank, config.device)
     config.rank = rank
     config.local_rank = local_rank
     config.world_size = world_size

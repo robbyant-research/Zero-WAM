@@ -59,6 +59,10 @@ def load_transformer(
     **kwargs
 ):
     model_cls = WanICLTransformer3DModel if icl_model else WanTransformer3DModel
+    torch_device = torch.device(torch_device)
+    if torch_device.type != 'cpu':
+        kwargs.setdefault('device_map', {'': str(torch_device)})
+        kwargs.setdefault('low_cpu_mem_usage', True)
     model = model_cls.from_pretrained(
         transformer_path,
         torch_dtype=torch_dtype,

@@ -2,6 +2,8 @@
 import torch
 import torch.distributed as dist
 
+from ..device import distributed_backend, get_device, set_device
+
 
 def _configure_model(model, shard_fn, param_dtype, device, eval_mode=True):
     """
@@ -21,14 +23,18 @@ def _configure_model(model, shard_fn, param_dtype, device, eval_mode=True):
     return model
 
 
-def init_distributed(world_size, local_rank, rank):
-    torch.cuda.set_device(local_rank)
-    device = torch.device(f"cuda:{local_rank}")
-    dist.init_process_group(backend="nccl",
-                            init_method="env://",
-                            rank=rank,
-                            world_size=world_size,
-                            device_id=device)
+def init_distributed(world_size, local_rank, rank, requested_device=None):
+    device = get_device(local_rank, requested_device)
+    set_device(device)
+    kwargs = {
+        "backend": distributed_backend(device),
+        "init_method": "env://",
+        "rank": rank,
+        "world_size": world_size,
+    }
+    if device.type != "cpu":
+        kwargs["device_id"] = device
+    dist.init_process_group(**kwargs)
 
 def dist_mean(local_tensor):
     if dist.is_initialized():

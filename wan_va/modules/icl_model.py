@@ -51,6 +51,10 @@ class ICLAttentionBackend:
     self_mask = None
     cross_mask = None
 
+    @staticmethod
+    def _uses_dense_mask(device: torch.device) -> bool:
+        return torch.device(device).type != "cuda"
+
     @classmethod
     def build_self_mask(
         cls,
@@ -64,6 +68,26 @@ class ICLAttentionBackend:
         device: torch.device,
         compile_mask: bool = True,
     ):
+        if cls._uses_dense_mask(device):
+            query_type = query_type_ids[:, None]
+            key_type = key_type_ids[None, :]
+            query_seq = query_seq_ids[:, None]
+            key_seq = key_seq_ids[None, :]
+            query_frame = query_frame_ids[:, None]
+            key_frame = key_frame_ids[None, :]
+            in_window = (window_size == -1) | (
+                (query_frame - key_frame).abs() <= window_size
+            )
+            valid_sequence = (key_type != -1) & (query_seq == key_seq)
+            base = valid_sequence & in_window & (key_type != ICL_CACHE_TYPE)
+            video_to_icl = (
+                (query_type == 0)
+                & (key_type == ICL_CACHE_TYPE)
+                & (query_seq == key_seq)
+            )
+            cls.self_mask = (base | video_to_icl)[None, None].to(device)
+            return cls.self_mask
+
         def window_mask(b, h, q_idx, kv_idx):
             return (window_size == -1) | (
                 (query_frame_ids[q_idx] - key_frame_ids[kv_idx]).abs()
@@ -115,6 +139,54 @@ class ICLAttentionBackend:
         compile_mask: bool = True,
     ):
         """Build the temporal-forcing mask for one Robotwin ICL sample."""
+
+        if cls._uses_dense_mask(device):
+            query_seq = seq_ids[:, None]
+            key_seq = seq_ids[None, :]
+            query_frame = frame_ids[:, None]
+            key_frame = frame_ids[None, :]
+            query_noise = noise_ids[:, None]
+            key_noise = noise_ids[None, :]
+            query_type = type_ids[:, None]
+            query_icl = icl_ids[:, None]
+            key_icl = icl_ids[None, :]
+            valid_pair = (query_seq >= 0) & (query_seq == key_seq)
+            in_window = (window_size == -1) | (
+                (query_frame - key_frame).abs() <= window_size
+            )
+            clean_to_clean = (
+                (query_noise == 1)
+                & (key_noise == 1)
+                & (key_frame <= query_frame)
+            )
+            noisy_to_clean = (
+                (query_noise == 0)
+                & (key_noise == 1)
+                & (key_frame < query_frame)
+            )
+            noisy_to_noisy = (
+                (query_noise == 0)
+                & (key_noise == 0)
+                & (key_frame == query_frame)
+            )
+            base_tf = (
+                (query_icl == 0)
+                & (key_icl == 0)
+                & (clean_to_clean | noisy_to_clean | noisy_to_noisy)
+            )
+            target_video_to_icl = (
+                valid_pair
+                & (query_icl == 0)
+                & (key_icl == 1)
+                & (query_type == 0)
+            )
+            icl_to_icl = valid_pair & (query_icl == 1) & (key_icl == 1)
+            cls.self_mask = (
+                (valid_pair & in_window & base_tf)
+                | target_video_to_icl
+                | icl_to_icl
+            )[None, None].to(device)
+            return cls.self_mask
 
         def valid_pair(b, h, q_idx, kv_idx):
             return (seq_ids[q_idx] >= 0) & (seq_ids[q_idx] == seq_ids[kv_idx])
@@ -193,6 +265,12 @@ class ICLAttentionBackend:
         device: torch.device,
         compile_mask: bool = True,
     ):
+        if cls._uses_dense_mask(device):
+            cls.cross_mask = (
+                query_seq_ids[:, None] == encoder_seq_ids[None, :]
+            )[None, None].to(device)
+            return cls.cross_mask
+
         def sequence_mask(b, h, q_idx, kv_idx):
             return query_seq_ids[q_idx] == encoder_seq_ids[kv_idx]
 
@@ -228,6 +306,11 @@ class ICLAttentionBackend:
             value = value.to(torch.bfloat16)
         query = query.to(value.dtype)
         key = key.to(value.dtype)
+
+        if isinstance(block_mask, torch.Tensor):
+            return F.scaled_dot_product_attention(
+                query, key, value, attn_mask=block_mask
+            ).transpose(1, 2)
 
         return _compiled_flex_attention(
             query,

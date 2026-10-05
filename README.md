@@ -79,6 +79,20 @@ Zero-WAM achieves 46.95% average zero-shot success on seven unseen RoboTwin 2.0 
 | Stack blocks three | 0.00 &plusmn; 0.00 | 0.00 &plusmn; 0.00 | **9.00 &plusmn; 2.16** |
 | **Average** | **10.98 &plusmn; 1.07** | **17.45 &plusmn; 1.40** | **46.95 &plusmn; 0.72** |
 
+## Hardware Support
+
+Zero-WAM runs on NVIDIA CUDA, Intel XPU, and CPU environments. The runtime automatically selects the available backend in this order: CUDA, XPU, then CPU. In most cases, no code or configuration changes are required.
+
+For Intel XPU devices, install a PyTorch build with XPU support instead of the CUDA wheels:
+
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/xpu
+```
+
+When running on XPU, CUDA-only dependencies or backend-specific kernels should be skipped if they are not required for that environment. The model uses backend-safe execution paths and falls back to standard PyTorch attention implementations when CUDA-specific paths are unavailable.
+
+This keeps the CUDA workflow intact while enabling portable validation and inference on XPU and CPU systems. Minor numerical differences, such as floating-point drift in flow-matching outputs, may occur across backends and are expected behavior rather than a correctness issue.
+
 ## Environment
 
 Use Python 3.10 with a CUDA-enabled PyTorch environment, then install the project dependencies:

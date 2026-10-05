@@ -60,7 +60,7 @@ def save_async(obj, file_path):
     if torch.is_tensor(obj) or (isinstance(obj, dict) and any(
             torch.is_tensor(v) for v in obj.values())):
         if torch.is_tensor(obj):
-            if obj.is_cuda:
+            if obj.device.type != 'cpu':
                 obj = obj.cpu()
         elif isinstance(obj, dict):
             obj = {
