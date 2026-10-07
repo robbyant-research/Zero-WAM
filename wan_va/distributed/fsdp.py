@@ -8,6 +8,8 @@ from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import (
     checkpoint_wrapper as ptd_checkpoint_wrapper,
 )
 
+from ..device import empty_cache
+
 def apply_ac(model):
     """Apply activation checkpointing to the model."""
     for layer_id, transformer_block in enumerate(model.blocks):
@@ -50,6 +52,7 @@ def shard_model(model,
 
 
 def free_model(model):
+    device = next(model.parameters()).device
     del model
     gc.collect()
-    torch.cuda.empty_cache()
+    empty_cache(device)

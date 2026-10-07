@@ -28,8 +28,11 @@ from functools import partial
 
 try:
     from flash_attn_interface import flash_attn_func
-except:
-    from flash_attn import flash_attn_func
+except ImportError:
+    try:
+        from flash_attn import flash_attn_func
+    except ImportError:
+        flash_attn_func = None
 
 __all__ = ['WanTransformer3DModel']
 
@@ -44,8 +47,8 @@ class FlexAttnFunc(nn.Module):
         flex_attention, dynamic=True, 
     )
     compiled_create_block_mask: ClassVar[Callable] = torch.compile(create_block_mask)
-    attention_mask: ClassVar[BlockMask] = None
-    cross_attention_mask: ClassVar[BlockMask] = None
+    attention_mask: ClassVar[BlockMask | torch.Tensor | None] = None
+    cross_attention_mask: ClassVar[BlockMask | torch.Tensor | None] = None
 
     def __init__(
         self, 
@@ -78,7 +81,12 @@ class FlexAttnFunc(nn.Module):
 
         block_mask = FlexAttnFunc.cross_attention_mask if self.is_cross else FlexAttnFunc.attention_mask
 
-        x_out = FlexAttnFunc.flex_attn(q_varlen, k_varlen, v_varlen, block_mask=block_mask, kernel_options = {
+        if isinstance(block_mask, torch.Tensor):
+            x_out = F.scaled_dot_product_attention(
+                q_varlen, k_varlen, v_varlen, attn_mask=block_mask
+            )
+        else:
+            x_out = FlexAttnFunc.flex_attn(q_varlen, k_varlen, v_varlen, block_mask=block_mask, kernel_options = {
                                                     "BLOCK_M": 64,
                                                     "BLOCK_N": 64,
                                                     "BLOCK_M1": 32,
@@ -127,14 +135,39 @@ class FlexAttnFunc(nn.Module):
         frame_ids = F.pad(frame_ids, (0, padded_length), value=-1)
         noise_ids = F.pad(noise_ids, (0, padded_length), value=-1)
 
-        mask_mod = FlexAttnFunc._get_mask_mod(seq_ids.long().to(device), frame_ids.long().to(device), noise_ids.long().to(device), window_size)
+        seq_ids = seq_ids.long().to(device)
+        frame_ids = frame_ids.long().to(device)
+        noise_ids = noise_ids.long().to(device)
+        text_seq_ids = torch.arange(B)[:, None].expand(-1, 512).flatten().long().to(device)
+        if torch.device(device).type != "cuda":
+            query_seq = seq_ids[:, None]
+            key_seq = seq_ids[None, :]
+            query_frame = frame_ids[:, None]
+            key_frame = frame_ids[None, :]
+            query_noise = noise_ids[:, None]
+            key_noise = noise_ids[None, :]
+            valid = (query_seq == key_seq) & (query_seq >= 0) & (key_seq >= 0)
+            clean_to_clean = (query_noise == 1) & (key_noise == 1) & (key_frame <= query_frame)
+            noisy_to_clean = (query_noise == 0) & (key_noise == 1) & (key_frame < query_frame)
+            noisy_to_noisy = (query_noise == 0) & (key_noise == 0) & (key_frame == query_frame)
+            window = (query_frame - key_frame).abs() <= window_size
+            FlexAttnFunc.attention_mask = (
+                valid & window & (clean_to_clean | noisy_to_clean | noisy_to_noisy)
+            )[None, None]
+            FlexAttnFunc.cross_attention_mask = (
+                (seq_ids[:, None] == text_seq_ids[None, :])
+                & (seq_ids[:, None] >= 0)
+                & (text_seq_ids[None, :] >= 0)
+            )[None, None]
+            return
+
+        mask_mod = FlexAttnFunc._get_mask_mod(seq_ids, frame_ids, noise_ids, window_size)
         block_mask = FlexAttnFunc.compiled_create_block_mask(
                 mask_mod, 1, 1, len(seq_ids), len(seq_ids), device=device, _compile=True
             )
         FlexAttnFunc.attention_mask = block_mask
 
-        text_seq_ids = torch.arange(B)[:, None].expand(-1, 512).flatten()
-        mask_mod_cross = FlexAttnFunc._get_cross_mask_mod(seq_ids.long().to(device), text_seq_ids.long().to(device))
+        mask_mod_cross = FlexAttnFunc._get_cross_mask_mod(seq_ids, text_seq_ids)
         block_mask_cross = FlexAttnFunc.compiled_create_block_mask(
                 mask_mod_cross, 1, 1, len(seq_ids), len(text_seq_ids), device=device, _compile=True
             )
@@ -308,6 +341,10 @@ class WanAttention(torch.nn.Module):
         if attn_mode == 'torch':
             self.attn_op = custom_sdpa
         elif attn_mode == 'flashattn':
+            if flash_attn_func is None:
+                raise ImportError(
+                    "FlashAttention is unavailable. Use attn_mode='torch' or 'flex'."
+                )
             self.attn_op = flash_attn_func
         elif attn_mode == 'flex':
             self.attn_op = FlexAttnFunc(cross_attention_dim_head is not None)
